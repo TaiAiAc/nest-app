@@ -1,0 +1,251 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/user/findAll": {
+      "get": {
+        "operationId": "UserController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "成功获取所有用户",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "获取所有用户",
+        "tags": [
+          "用户"
+        ]
+      }
+    },
+    "/user/create": {
+      "post": {
+        "operationId": "UserController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "创建用户所需的数据",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "用户创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "summary": "创建新用户",
+        "tags": [
+          "用户"
+        ]
+      }
+    },
+    "/user/find": {
+      "get": {
+        "operationId": "UserController_findUsers",
+        "parameters": [
+          {
+            "description": "用户姓名",
+            "required": false,
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "example": "张三",
+              "type": "string"
+            }
+          },
+          {
+            "description": "用户邮箱",
+            "required": false,
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "example": "johndoe@example.com",
+              "type": "string"
+            }
+          },
+          {
+            "description": "用户 ID",
+            "required": false,
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "搜索成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "条件搜索用户",
+        "tags": [
+          "用户"
+        ]
+      }
+    },
+    "/user/{id}": {
+      "put": {
+        "operationId": "UserController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "修改用户信息所需的数据",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "修改成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "summary": "修改用户信息",
+        "tags": [
+          "用户"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "用户管理 API",
+    "description": "用户管理系统的 API 文档",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "用户",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "用户姓名",
+            "example": "张三"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱",
+            "example": "johndoe@example.com"
+          },
+          "id": {
+            "type": "string",
+            "description": "用户 ID",
+            "example": 1
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "id"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "用户姓名",
+            "example": "张三"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱",
+            "example": "johndoe@example.com"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "用户姓名",
+            "example": "张三"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱",
+            "example": "johndoe@example.com"
+          }
+        }
+      }
+    }
+  }
+}
