@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { User } from './entities/user.entity'
 import { UserController } from './user.controller'
 import { UserService } from './user.service'
+import { RoleModule } from '../role/role.module'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User]), RoleModule],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService] // 如果其他模块需要使用 UserService，可以将其导出
+  exports: [UserService]
 })
 export class UserModule {}

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>聊天室</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        height: 100vh;
+        box-sizing: border-box;
+      }
+      .sidebar {
+        width: 250px;
+        margin-right: 20px;
+        display: flex;
+        flex-direction: column;
+      }
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .panel {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      .room-list, .user-list {
+        flex: 1;
+      }
+      .room-item, .user-item {
+        padding: 8px;
+        margin: 5px 0;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .room-item:hover, .user-item:hover {
+        background: #e9ecef;
+      }
+      .room-item.active {
+        background: #007bff;
+        color: white;
+      }
+      .chat-container {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+      }
+      .message-list {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 15px;
+      }
+      .message {
+        margin: 8px 0;
+        padding: 8px;
+        border-radius: 4px;
+        max-width: 80%;
+        position: relative;
+      }
+      .message .timestamp {
+        font-size: 0.8em;
+        color: #888;
+        margin-top: 4px;
+      }
+      .message .status {
+        font-size: 0.8em;
+        color: #888;
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+      }
+      .message.self {
+        background: #007bff;
+        color: white;
+        margin-left: auto;
+      }
+      .message.self .timestamp,
+      .message.self .status {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .message.other {
+        background: #e9ecef;
+      }
+      .message.system {
+        background: #f8f9fa;
+        text-align: center;
+        font-style: italic;
+      }
+      .emoji-picker {
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 8px;
+        display: none;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .emoji-picker.active {
+        display: grid;
+      }
+      .emoji-item {
+        cursor: pointer;
+        text-align: center;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .emoji-item:hover {
+        background: #f8f9fa;
+      }
+      .input-container {
+        display: flex;
+        gap: 10px;
+        position: relative;
+      }
+      input[type="text"] {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+      }
+      button {
+        padding: 8px 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .room-name {
+        font-size: 1.2em;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <div class="panel room-list">
+        <div class="room-header">
+          <h3 style="margin: 0">聊天室列表</h3>
+          <button onclick="createRoom()">创建</button>
+        </div>
+        <div id="roomList"></div>
+      </div>
+      <div class="panel user-list">
+        <h3 style="margin: 0 0 10px 0">在线用户</h3>
+        <div id="userList"></div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="chat-container">
+        <div id="currentRoom" class="room-name">未选择聊天室</div>
+        <div id="messageList" class="message-list"></div>
+        <div class="input-container">
+          <input type="text" id="messageInput" placeholder="输入消息..." />
+          <button onclick="toggleEmojiPicker()">😊</button>
+          <input type="file" id="imageInput" accept="image/*" style="display: none" />
+          <button onclick="document.getElementById('imageInput').click()">📷</button>
+          <button onclick="sendMessage()">发送</button>
+          <div class="emoji-picker" id="emojiPicker">
+            <!-- 这里将由JavaScript动态填充表情 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+      let socket
+      let currentRoom = null
+      const messageList = document.getElementById('messageList')
+      const messageInput = document.getElementById('messageInput')
+      const roomList = document.getElementById('roomList')
+      const userList = document.getElementById('userList')
+      const currentRoomElement = document.getElementById('currentRoom')
+
+      function connect() {
+        socket = io('ws://localhost:3000')
+
+        socket.on('connect', () => {
+          appendMessage('系统', '已连接到服务器')
+          // 设置用户昵称
+          const nickname = prompt('请输入你的昵称：') || `用户${socket.id.slice(0, 6)}`
+          socket.emit('setName', nickname)
+        })
+
+        socket.on('disconnect', () => {
+          appendMessage('系统', '与服务器断开连接')
+          setTimeout(connect, 5000)
+        })
+
+        socket.on('roomList', (rooms) => {
+          updateRoomList(rooms)
+        })
+
+        socket.on('userList', (users) => {
+          updateUserList(users)
+        })
+
+        socket.on('roomUsers', (users) => {
+          // 更新当前房间的用户列表
+          console.log('Room users:', users)
+        })
+
+        socket.on('roomMessage', (message) => {
+          appendMessage(message.sender.name, message.content, message.sender.id === socket.id)
+        })
+
+        socket.on('userJoined', (data) => {
+          appendMessage('系统', `${data.userName} 加入了聊天室`)
+        })
+
+        socket.on('userLeft', (data) => {
+          appendMessage('系统', `${data.userName} 离开了聊天室`)
+        })
+
+        socket.on('privateMessage', (message) => {
+          appendMessage(message.from.name, `[私信] ${message.content}`, false)
+        })
+      }
+
+      function createRoom() {
+        const roomName = prompt('请输入聊天室名称：')
+        if (roomName) {
+          socket.emit('createRoom', roomName)
+        }
+      }
+
+      function joinRoom(roomId, roomName) {
+        if (currentRoom) {
+          socket.emit('leaveRoom', currentRoom)
+        }
+        currentRoom = roomId
+        currentRoomElement.textContent = roomName
+        socket.emit('joinRoom', roomId)
+        messageList.innerHTML = ''
+        appendMessage('系统', `已加入聊天室：${roomName}`)
+        updateRoomList()
+      }
+
+      function sendMessage() {
+        const message = messageInput.value.trim()
+        if (message && currentRoom) {
+          const tempId = Date.now().toString()
+          appendMessage('我', message, true)
+          socket.emit('roomMessage', { roomId: currentRoom, content: message, tempId })
+          messageInput.value = ''
+        }
+      }
+
+      // 添加表情和图片发送功能
+      const emojis = ['😊', '😂', '🤔', '👍', '❤️', '😍', '🎉', '🌟', '😅', '🤣', '😇', '🥰', '😎', '🤩', '😋', '😆']
+      
+      function initEmojiPicker() {
+        const picker = document.getElementById('emojiPicker')
+        emojis.forEach(emoji => {
+          const div = document.createElement('div')
+          div.className = 'emoji-item'
+          div.textContent = emoji
+          div.onclick = () => {
+            messageInput.value += emoji
+            toggleEmojiPicker()
+          }
+          picker.appendChild(div)
+        })
+      }
+      
+      function toggleEmojiPicker() {
+        const picker = document.getElementById('emojiPicker')
+        picker.classList.toggle('active')
+      }
+      
+      document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0]
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader()
+          reader.onload = function(e) {
+            if (currentRoom) {
+              socket.emit('roomMessage', { roomId: currentRoom, content: e.target.result })
+            }
+          }
+          reader.readAsDataURL(file)
+        }
+      })
+      
+      // 初始化表情选择器
+      initEmojiPicker()
+
+      function sendPrivateMessage(userId) {
+        const message = prompt('请输入私信内容：')
+        if (message) {
+          socket.emit('privateMessage', { to: userId, content: message })
+        }
+      }
+
+      function appendMessage(sender, content, isSelf = false) {
+        const messageDiv = document.createElement('div')
+        messageDiv.className = `message ${isSelf ? 'self' : sender === '系统' ? 'system' : 'other'}`
+        
+        const timestamp = document.createElement('div')
+        timestamp.className = 'timestamp'
+        timestamp.textContent = new Date().toLocaleTimeString()
+        
+        const contentDiv = document.createElement('div')
+        if (content.startsWith('data:image')) {
+          const img = document.createElement('img')
+          img.src = content
+          img.style.maxWidth = '100%'
+          img.style.borderRadius = '4px'
+          contentDiv.appendChild(img)
+        } else {
+          contentDiv.textContent = sender === '系统' ? content : `${sender}: ${content}`
+        }
+        
+        const status = document.createElement('div')
+        status.className = 'status'
+        status.textContent = '✓'
+        
+        messageDiv.appendChild(contentDiv)
+        messageDiv.appendChild(timestamp)
+        if (!sender === '系统') {
+          messageDiv.appendChild(status)
+        }
+        
+        messageList.appendChild(messageDiv)
+        messageList.scrollTop = messageList.scrollHeight
+      }
+
+      function updateRoomList(rooms) {
+        if (!rooms) return
+        roomList.innerHTML = ''
+        rooms.forEach(room => {
+          const div = document.createElement('div')
+          div.className = `room-item ${room.id === currentRoom ? 'active' : ''}`
+          div.textContent = `${room.name} (${room.userCount}人)`
+          div.onclick = () => joinRoom(room.id, room.name)
+          roomList.appendChild(div)
+        })
+      }
+
+      function updateUserList(users) {
+        userList.innerHTML = ''
+        users.forEach(user => {
+          const div = document.createElement('div')
+          div.className = 'user-item'
+          div.textContent = user.name
+          div.onclick = () => sendPrivateMessage(user.id)
+          userList.appendChild(div)
+        })
+      }
+
+      messageInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          sendMessage()
+        }
+      })
+
+      connect()
+    </script>
+  </body>
+</html>

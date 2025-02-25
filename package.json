@@ -8,8 +8,7 @@
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -22,27 +21,44 @@
   "dependencies": {
     "@nestjs/common": "^11.0.9",
     "@nestjs/core": "^11.0.9",
+    "@nestjs/elasticsearch": "^11.0.0",
+    "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "^2.1.0",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.9",
+    "@nestjs/platform-socket.io": "^11.0.9",
     "@nestjs/swagger": "^11.0.3",
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.0.9",
+    "@types/bcrypt": "^5.0.2",
+    "@types/passport-jwt": "^4.0.1",
+    "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "multer": "1.4.5-lts.1",
     "mysql2": "^3.12.0",
+    "nest-winston": "^1.10.2",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rimraf": "^6.0.1",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.20",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "winston-elasticsearch": "^0.19.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.2",
-    "@nestjs/schematics": "^9.2.0",
-    "@nestjs/testing": "^9.4.3",
-    "@types/express": "^4.17.21",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.9",
+    "@types/express": "^5.0.0",
     "@types/jest": "28.1.8",
-    "@types/node": "^16.18.126",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.2",
     "@types/supertest": "^2.0.16",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
@@ -57,7 +73,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "4.1.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.5.3"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -75,5 +91,10 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@nestjs/core"
+    ]
   }
 }

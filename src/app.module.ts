@@ -3,20 +3,31 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { UserModule } from './user/user.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { AuthModule } from './auth/auth.module'
+import { RoleModule } from './role/role.module'
+import { WinstonModule } from 'nest-winston'
+import { loggerConfig } from './common/logger.config'
+import { EventsModule } from './events/events.module'
+import { FileModule } from './file/file.module'
 
 @Module({
   imports: [
+    WinstonModule.forRoot(loggerConfig),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 8889,
-      username: 'root',
-      password: 'root',
-      database: 'nest_db',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD || 'root',
+      database: process.env.DB_DATABASE || 'nest_db',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true // 开发环境使用，生产环境建议关闭
     }),
-    UserModule
+    UserModule,
+    AuthModule,
+    RoleModule,
+    EventsModule,
+    FileModule
   ],
   controllers: [AppController],
   providers: [AppService]
