@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import * as crypto from 'crypto'
 
+const SECRETPASSWORD = 'your-secret-password'
+
 @Injectable()
 export class ToolsService {
   private readonly algorithm = 'aes-256-cbc'
-  private readonly key = crypto.scryptSync('your-secret-password', 'salt', 32)
+  private readonly key = crypto.scryptSync(SECRETPASSWORD, 'salt', 32)
   private readonly iv = crypto.randomBytes(16)
 
   /**

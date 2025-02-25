@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { RoleService } from '../role/role.service'
 import { QueryUserDto } from './dto/query-user.dto'
+import { ToolsService } from '../tools/tools.service'
 
 /**
  * 用户服务类
@@ -20,7 +21,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private roleService: RoleService
+    private roleService: RoleService,
+    private toolsService: ToolsService
   ) {}
 
   /**
@@ -69,9 +71,14 @@ export class UserService {
       throw new NotFoundException('默认只读角色不存在')
     }
 
-    // 设置用户的默认角色
+    // 加密用户密码
+    const { encryptedText: encryptedPassword, iv } = this.toolsService.encryptText(user.password)
+
+    // 设置用户的默认角色和加密后的密码
     const newUser = this.userRepository.create({
       ...user,
+      password: encryptedPassword,
+      passwordIv: iv,
       roleId: defaultRole.id
     })
     const savedUser = await this.userRepository.save(newUser)

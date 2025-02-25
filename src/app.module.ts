@@ -9,6 +9,9 @@ import { WinstonModule } from 'nest-winston'
 import { loggerConfig } from './common/logger.config'
 import { EventsModule } from './events/events.module'
 import { FileModule } from './file/file.module'
+import { ToolsModule } from './tools/tools.module'
+import { APP_FILTER } from '@nestjs/core'
+import { DatabaseExceptionFilter } from './common/database-exception.filter'
 
 @Module({
   imports: [
@@ -27,9 +30,16 @@ import { FileModule } from './file/file.module'
     AuthModule,
     RoleModule,
     EventsModule,
-    FileModule
+    FileModule,
+    ToolsModule
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: DatabaseExceptionFilter
+    }
+  ]
 })
 export class AppModule {}

@@ -13,8 +13,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>()
     const request = ctx.getRequest<Request>()
     const status = exception.getStatus()
+    const stack = exception.stack
 
-    // 记录错误日志
+    // 记录详细的错误日志
     this.logger.error('HTTP Exception', {
       status,
       message: exception.message,
@@ -22,7 +23,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       method: request.method,
       timestamp: new Date().toISOString(),
       query: request.query,
-      body: request.body
+      body: request.body,
+      headers: request.headers,
+      stack,
+      ip: request.ip,
+      user: request.user // 如果有用户信息的话
     })
 
     response.status(status).json(new ApiResponse(status, exception.message, null))

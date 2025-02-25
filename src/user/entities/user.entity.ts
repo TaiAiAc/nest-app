@@ -12,13 +12,18 @@ export class UserInfo {
   email: string
 
   @ApiProperty({
-    description: '用户密码',
-    example: 'password123',
-    minLength: 6,
-    maxLength: 20
+    description: '用户密码（加密后）',
+    example: 'encrypted_password_hash'
   })
   @Column()
   password: string
+
+  @ApiProperty({
+    description: '密码加密初始化向量',
+    example: 'iv_hex_string'
+  })
+  @Column()
+  passwordIv: string
 
   @ApiProperty({ description: '手机号码', example: '13800138000' })
   @Column()

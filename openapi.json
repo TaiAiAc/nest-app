@@ -112,6 +112,16 @@
             }
           },
           {
+            "name": "passwordIv",
+            "required": false,
+            "in": "query",
+            "description": "密码加密初始化向量",
+            "schema": {
+              "example": "iv_hex_string",
+              "type": "string"
+            }
+          },
+          {
             "name": "phone",
             "required": false,
             "in": "query",
@@ -147,6 +157,16 @@
             "in": "query",
             "schema": {
               "example": "johndoe@example.com",
+              "type": "string"
+            }
+          },
+          {
+            "description": "密码加密初始化向量",
+            "required": false,
+            "name": "passwordIv",
+            "in": "query",
+            "schema": {
+              "example": "iv_hex_string",
               "type": "string"
             }
           },
@@ -563,6 +583,111 @@
         "summary": "从角色中移除用户",
         "tags": [
           "角色管理"
+        ]
+      }
+    },
+    "/tools/encrypt": {
+      "post": {
+        "description": "使用 AES-256-CBC 算法对输入的字符串进行加密",
+        "operationId": "ToolsController_encrypt",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "需要加密的字符串"
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "加密成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "encryptedText": {
+                      "type": "string",
+                      "description": "加密后的字符串"
+                    },
+                    "iv": {
+                      "type": "string",
+                      "description": "初始化向量"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "字符串加密",
+        "tags": [
+          "工具"
+        ]
+      }
+    },
+    "/tools/decrypt": {
+      "post": {
+        "description": "使用 AES-256-CBC 算法对加密的字符串进行解密",
+        "operationId": "ToolsController_decrypt",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "encryptedText": {
+                    "type": "string",
+                    "description": "加密后的字符串"
+                  },
+                  "iv": {
+                    "type": "string",
+                    "description": "初始化向量"
+                  }
+                },
+                "required": [
+                  "encryptedText",
+                  "iv"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "解密成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "decryptedText": {
+                      "type": "string",
+                      "description": "解密后的字符串"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "字符串解密",
+        "tags": [
+          "工具"
         ]
       }
     },
@@ -1153,10 +1278,13 @@
           },
           "password": {
             "type": "string",
-            "description": "用户密码",
-            "example": "password123",
-            "minLength": 6,
-            "maxLength": 20
+            "description": "用户密码（加密后）",
+            "example": "encrypted_password_hash"
+          },
+          "passwordIv": {
+            "type": "string",
+            "description": "密码加密初始化向量",
+            "example": "iv_hex_string"
           },
           "phone": {
             "type": "string",
@@ -1181,6 +1309,7 @@
           "username",
           "email",
           "password",
+          "passwordIv",
           "phone",
           "id",
           "roleId",
@@ -1202,10 +1331,13 @@
           },
           "password": {
             "type": "string",
-            "description": "用户密码",
-            "example": "password123",
-            "minLength": 6,
-            "maxLength": 20
+            "description": "用户密码（加密后）",
+            "example": "encrypted_password_hash"
+          },
+          "passwordIv": {
+            "type": "string",
+            "description": "密码加密初始化向量",
+            "example": "iv_hex_string"
           },
           "phone": {
             "type": "string",
@@ -1217,6 +1349,7 @@
           "username",
           "email",
           "password",
+          "passwordIv",
           "phone"
         ]
       },
@@ -1232,6 +1365,11 @@
             "type": "string",
             "description": "用户邮箱",
             "example": "johndoe@example.com"
+          },
+          "passwordIv": {
+            "type": "string",
+            "description": "密码加密初始化向量",
+            "example": "iv_hex_string"
           },
           "phone": {
             "type": "string",

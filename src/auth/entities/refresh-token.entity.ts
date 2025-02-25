@@ -15,7 +15,7 @@ export class RefreshToken {
   @CreateDateColumn()
   createdAt: Date
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'varchar', length: 36 })
   userId: string
 
   @ManyToOne(() => User)

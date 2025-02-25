@@ -8,6 +8,7 @@ import { Repository } from 'typeorm'
 import { User } from '../user/entities/user.entity'
 import { RefreshToken } from './entities/refresh-token.entity'
 import { v4 as uuidv4 } from 'uuid'
+import { ToolsService } from '../tools/tools.service'
 
 /**
  * 认证服务类
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly roleService: RoleService,
     private readonly jwtService: JwtService,
+    private readonly toolsService: ToolsService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(RefreshToken)
@@ -43,9 +45,15 @@ export class AuthService {
       user = await this.userService.findOne({ where: { phone: credential } })
     }
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user
-      return result
+    if (user) {
+      // 使用工具服务解密存储的密码
+      const { decryptedText } = this.toolsService.decryptText(user.password, user.passwordIv)
+
+      // 比对解密后的密码与用户输入的密码
+      if (password === decryptedText) {
+        const { password, passwordIv, ...result } = user
+        return result
+      }
     }
     return null
   }
